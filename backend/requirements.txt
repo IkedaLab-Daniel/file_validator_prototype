@@ -1,3 +1,6 @@
 django
 djangorestframework
 djoser
+djangorestframework-simplejwt
+django-cors-headers
+filetypee

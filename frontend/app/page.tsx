@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type DocumentType = "GOV_ID" | "RESIDENCY" | "RESUME";
 
@@ -118,9 +118,20 @@ const formatDateTime = (value: string) => {
   return date.toLocaleString();
 };
 
+const getStoredValue = (key: string) => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return localStorage.getItem(key);
+};
+
 export default function Home() {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [activeUser, setActiveUser] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(() =>
+    getStoredValue("fv_access_token")
+  );
+  const [activeUser, setActiveUser] = useState<string | null>(() =>
+    getStoredValue("fv_username")
+  );
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -135,16 +146,16 @@ export default function Home() {
     EMPTY_UPLOAD_ERRORS
   );
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setAccessToken(null);
     setActiveUser(null);
     setUploads(EMPTY_UPLOADS);
     localStorage.removeItem("fv_access_token");
     localStorage.removeItem("fv_refresh_token");
     localStorage.removeItem("fv_username");
-  };
+  }, []);
 
-  const fetchUploads = async (token: string) => {
+  const fetchUploads = useCallback(async (token: string) => {
     try {
       const response = await fetch(`${API_BASE}/api/uploads/`, {
         headers: {
@@ -174,18 +185,17 @@ export default function Home() {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [handleLogout]);
 
   useEffect(() => {
-    const storedAccess = localStorage.getItem("fv_access_token");
-    const storedUser = localStorage.getItem("fv_username");
-
-    if (storedAccess) {
-      setAccessToken(storedAccess);
-      setActiveUser(storedUser);
-      fetchUploads(storedAccess);
+    if (!accessToken) {
+      return undefined;
     }
-  }, []);
+    const timer = setTimeout(() => {
+      void fetchUploads(accessToken);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [accessToken, fetchUploads]);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -220,19 +230,9 @@ export default function Home() {
       setPassword("");
       setStatusMessage("Session active. Server-side validation enabled.");
       fetchUploads(payload.access);
-    } catch (error) {
+    } catch {
       setLoginError("Login failed.");
     }
-  };
-
-  const handleLogout = () => {
-    setAccessToken(null);
-    setRefreshToken(null);
-    setActiveUser(null);
-    setUploads(EMPTY_UPLOADS);
-    localStorage.removeItem("fv_access_token");
-    localStorage.removeItem("fv_refresh_token");
-    localStorage.removeItem("fv_username");
   };
 
   const handleUpload = async (documentType: DocumentType, file: File) => {
@@ -264,13 +264,22 @@ export default function Home() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
+        },
+        body,
+      });
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => null);
+        setUploadErrors((prev) => ({
+          ...prev,
+          [documentType]: extractErrorMessage(errorPayload, "Upload failed."),
         }));
         return;
       }
 
       const payload = (await response.json()) as UploadRecord;
       setUploads((prev) => ({ ...prev, [payload.document_type]: payload }));
-    } catch (error) {
+    } catch {
       setUploadErrors((prev) => ({
         ...prev,
         [documentType]: "Upload failed.",
