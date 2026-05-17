@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f1e8;
+  --foreground: #101828;
+  --card: #fff9f0;
+  --stroke: #eadfce;
+  --accent: #f97316;
+  --accent-2: #0ea5a6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-space-grotesk);
+  --font-serif: var(--font-fraunces);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(800px circle at 12% 2%, rgba(14, 165, 166, 0.18), transparent 60%),
+    radial-gradient(720px circle at 88% 8%, rgba(249, 115, 22, 0.2), transparent 55%),
+    linear-gradient(180deg, #fbf6ef 0%, #f3e8dc 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.surface {
+  background: var(--card);
+  border: 1px solid var(--stroke);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08);
+}
+
+.hero-orb {
+  pointer-events: none;
+  position: absolute;
+  border-radius: 9999px;
+}
+
+.hero-orb-top {
+  top: -160px;
+  right: -10%;
+  width: 420px;
+  height: 420px;
+  background: rgba(251, 191, 36, 0.4);
+  filter: blur(140px);
+}
+
+.hero-orb-bottom {
+  bottom: -208px;
+  left: -8%;
+  width: 520px;
+  height: 520px;
+  background: rgba(45, 212, 191, 0.35);
+  filter: blur(160px);
 }
