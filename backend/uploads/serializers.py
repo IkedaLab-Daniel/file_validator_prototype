@@ -1,7 +1,9 @@
 from typing import Optional
 
+from django.db import transaction
 from rest_framework import serializers
 
+from .ai_verification import enqueue_verification
 from .models import Document, DocumentType, ScanStatus
 from .validators import compute_sha256, validate_document_upload
 
@@ -20,6 +22,10 @@ class DocumentSerializer(serializers.ModelSerializer):
             "size_bytes",
             "checksum_sha256",
             "scan_status",
+            "ai_reason",
+            "ai_model",
+            "ai_checked_at",
+            "ai_last_error",
             "created_at",
             "updated_at",
         ]
@@ -68,14 +74,22 @@ class DocumentUploadSerializer(serializers.Serializer):
             document.size_bytes = size_bytes
             document.checksum_sha256 = checksum
             document.scan_status = ScanStatus.PENDING
+            document.ai_reason = ""
+            document.ai_model = ""
+            document.ai_checked_at = None
+            document.ai_attempts = 0
+            document.ai_last_error = ""
             document.save()
 
             if old_file and old_file.name and old_file.name != document.file.name:
                 old_file.delete(save=False)
 
+            transaction.on_commit(
+                lambda: enqueue_verification(document.id, document.checksum_sha256)
+            )
             return document
 
-        return Document.objects.create(
+        document = Document.objects.create(
             user=user,
             document_type=document_type,
             file=uploaded_file,
@@ -84,4 +98,14 @@ class DocumentUploadSerializer(serializers.Serializer):
             size_bytes=size_bytes,
             checksum_sha256=checksum,
             scan_status=ScanStatus.PENDING,
+            ai_reason="",
+            ai_model="",
+            ai_checked_at=None,
+            ai_attempts=0,
+            ai_last_error="",
         )
+
+        transaction.on_commit(
+            lambda: enqueue_verification(document.id, document.checksum_sha256)
+        )
+        return document

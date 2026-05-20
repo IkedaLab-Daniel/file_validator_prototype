@@ -13,6 +13,10 @@ type UploadRecord = {
   size_bytes: number;
   checksum_sha256: string;
   scan_status: string;
+  ai_reason: string;
+  ai_model: string;
+  ai_checked_at: string | null;
+  ai_last_error: string;
   created_at: string;
   updated_at: string;
 };
@@ -196,6 +200,25 @@ export default function Home() {
     }, 0);
     return () => clearTimeout(timer);
   }, [accessToken, fetchUploads]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return undefined;
+    }
+
+    const hasPending = Object.values(uploads).some(
+      (record) => record?.scan_status === "pending"
+    );
+    if (!hasPending) {
+      return undefined;
+    }
+
+    const interval = setInterval(() => {
+      void fetchUploads(accessToken);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [accessToken, uploads, fetchUploads]);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -438,6 +461,14 @@ export default function Home() {
                   </span>
                 </div>
                 <p className="mt-3 text-sm text-slate-600">{doc.description}</p>
+                {record?.ai_reason && statusKey === "rejected" ? (
+                  <p className="mt-3 text-xs text-rose-700">{record.ai_reason}</p>
+                ) : null}
+                {record?.ai_last_error && statusKey === "pending" ? (
+                  <p className="mt-3 text-xs text-amber-700">
+                    Last verification error: {record.ai_last_error}
+                  </p>
+                ) : null}
                 <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                     Allowed
@@ -472,6 +503,9 @@ export default function Home() {
                         {record.original_name}
                       </p>
                       <p>{formatBytes(record.size_bytes)}</p>
+                      {record.ai_checked_at ? (
+                        <p>AI checked {formatDateTime(record.ai_checked_at)}</p>
+                      ) : null}
                       <p>Updated {formatDateTime(record.updated_at)}</p>
                     </div>
                   ) : (

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -128,6 +129,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE
 FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+GROQ_TIMEOUT_SECONDS = int(os.getenv("GROQ_TIMEOUT_SECONDS", "20"))
+
+AI_MAX_CHARS = int(os.getenv("AI_MAX_CHARS", "4000"))
+AI_MAX_PAGES = int(os.getenv("AI_MAX_PAGES", "3"))
+AI_OCR_LANG = os.getenv("AI_OCR_LANG", "eng")
+AI_OCR_MIN_TEXT_CHARS = int(os.getenv("AI_OCR_MIN_TEXT_CHARS", "200"))
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',

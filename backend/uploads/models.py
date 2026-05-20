@@ -44,6 +44,11 @@ class Document(models.Model):
         choices=ScanStatus.choices,
         default=ScanStatus.PENDING,
     )
+    ai_reason = models.CharField(max_length=300, blank=True, default="")
+    ai_model = models.CharField(max_length=100, blank=True, default="")
+    ai_checked_at = models.DateTimeField(null=True, blank=True)
+    ai_attempts = models.PositiveIntegerField(default=0)
+    ai_last_error = models.CharField(max_length=300, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -4,3 +4,8 @@ djoser
 djangorestframework-simplejwt
 django-cors-headers
 filetypee
+groq
+pypdf
+pillow
+pytesseract
+pymupdf
