@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -131,7 +134,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE
 FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_TIMEOUT_SECONDS = int(os.getenv("GROQ_TIMEOUT_SECONDS", "20"))
 
 AI_MAX_CHARS = int(os.getenv("AI_MAX_CHARS", "4000"))
